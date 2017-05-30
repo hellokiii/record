@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   post 'home/upload'
   get 'home/table'
   get 'home/simulation'
+  get 'home/five_inning'
+  get 'home/simul'
+  get 'home/average'
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
