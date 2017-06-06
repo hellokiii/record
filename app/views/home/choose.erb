@@ -1,0 +1,39 @@
+
+
+
+<ul class="dropdown-content checkboxes">
+    <% @all_players.each do |a| %>
+      <li><label><input type="checkbox" /><%=a.name%></label></li>
+    <% end %>
+</ul>
+
+<div class="result" name="lineup"></div>
+
+<form action="/home/check" method="post">
+  <textarea class="result" style="display:none;" name="lineup"></textarea>
+  <input type="submit">
+</form>
+
+
+
+
+<script>
+var order = [];
+
+$("[type=checkbox]").on('change', function() { // always use change event
+    var idx = order.indexOf(this);
+	
+    if (idx !== -1) {         // if already in array
+    	order.splice(idx, 1); // make sure we remove it
+    }
+
+    if (this.checked) {    // if checked
+    	order.push(this);  // add to end of array
+    }
+    
+    // <------------------------------------For demonstration
+    $('.result').html(JSON.stringify($.map(order, function(elem) {
+    	return $(elem).closest('label').text().trim();
+    })));
+});
+</script>

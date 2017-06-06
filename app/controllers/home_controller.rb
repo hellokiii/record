@@ -1,6 +1,4 @@
 class HomeController < ApplicationController
-
-  
   @@advance = {"baseonballs": [1],
              "hbp": [1],
              "single": [0,1],
@@ -19,9 +17,32 @@ class HomeController < ApplicationController
     simulation
   end
   
+  def check
+    Record.all.each do |r|
+      r.selected = false
+      r.batting_order = 0
+      r.save
+    end
+    the_selected = params[:lineup]
+    lineup = the_selected.split('"') - ["[", ",", "]"]
+    lineup.each do |l|
+      a = Record.where(name: l).take
+      a.batting_order = lineup.index(l) + 1
+      a.selected = true
+      a.save
+    end
+    redirect_to '/home/lineup'
+  end
+  
+  def lineup
+    choose_batters
+    @picked = Record.where(selected: true).order(batting_order: :asc)
+  end
+  
+  
   def upload
     Record.import(params[:csv_file])
-    redirect_to '/home/index', notice: "완료!"
+    redirect_to '/home/choose', notice: "완료!"
   end
   
   def simul
@@ -33,30 +54,29 @@ class HomeController < ApplicationController
   end
   
   def simulation
+    choose_batters
     out = 0
     @@result << @@inning.to_s + "이닝"
-    while out < 3
-      Record.all.each do |r|
-        @@batter_num += 1
-        @@batter_num = 1 if @@batter_num > 9
-        result_of_the_batter = r.batter_result
-        @@result << @@batter_num.to_s + "번타자 " + Record.find(@@batter_num).name + ": " + result_of_the_batter
+    while out < 3 do
+      Record.where(selected: true).order(batting_order: :asc).each do |r| #선택된 타자들 타순으로
+        result_of_the_batter = r.batter_result #랜덤으로 타석 결과 뽑기
+        @@result << r.batting_order.to_s + "번타자 " + r.name + ": " + result_of_the_batter
         if result_of_the_batter == "strikeout"
-          out += 1
+          out += 1      #삼진이면 아웃카운트만 하나 올리기
         elsif result_of_the_batter == "pb"
-          out += 1
+          out += 1     #범타면 아웃카운트 하나 올리기
           if out == 3
             @@inning += 1
             break
           end
-          @@juja += @@advance[result_of_the_batter.to_sym]
+          @@juja += @@advance[result_of_the_batter.to_sym] #3아웃이면 다음이닝, 아니면 주자 진루
         else
-          @@juja += @@advance[result_of_the_batter.to_sym]
+          @@juja += @@advance[result_of_the_batter.to_sym]  #나머지는 타석결과에 따라 주자 진루
         end
         if out == 3
           @@inning += 1
           break
-        end
+        end  #3아웃이면 다음이닝
       end
     end
     @juja = @@juja
@@ -88,7 +108,9 @@ class HomeController < ApplicationController
       five_inning
       @sum += @run
     end
-    
   end
   
+  def choose
+    @all_players = Record.all
+  end
 end
