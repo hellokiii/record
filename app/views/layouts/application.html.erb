@@ -8,10 +8,11 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
-  <a href="/home/dbupload">기록 올리기</a>
-  <a href="/home/choose">선수 고르기</a>
-  <a href="/home/lineup">라인업 확인</a>
-  
+  <% if user_signed_in? %>
+    <a href="/home/dbupload">기록 올리기</a>
+    <a href="/home/choose">선수 고르기</a>
+    <a href="/home/lineup">라인업 확인</a>
+  <% end %>
   <div class="to_center">
     <%= yield %>
   </div>

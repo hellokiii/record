@@ -1,4 +1,6 @@
 class HomeController < ApplicationController
+  
+  before_action :need_login
   @@advance = {"baseonballs": [1],
              "hbp": [1],
              "single": [0,1],
@@ -26,7 +28,7 @@ class HomeController < ApplicationController
     the_selected = params[:lineup]
     lineup = the_selected.split('"') - ["[", ",", "]"]
     lineup.each do |l|
-      a = Record.where(name: l).take
+      a = Record.where(name: l, user_id: current_user.id).take
       a.batting_order = lineup.index(l) + 1
       a.selected = true
       a.save
@@ -36,15 +38,27 @@ class HomeController < ApplicationController
   
   def lineup
     choose_batters
-    @picked = Record.where(selected: true).order(batting_order: :asc)
+    @picked = Record.where(selected: true, user_id: current_user.id).order(batting_order: :asc)
   end
-  
   
   def upload
-    Record.import(params[:csv_file])
+    file = params[:csv_file]
+    i=1
+    CSV.foreach(file.path, headers: true, encoding:'r:iso-8859-1:utf-8') do |row|
+        info = row.to_hash
+        info["user_id"] = current_user.id
+        if i > Record.count
+            Record.create! row.to_hash
+        else
+            a = Record.find(i)
+            a.attributes = row.to_hash
+            a.save
+            i+=1
+        end
+    end
     redirect_to '/home/choose', notice: "완료!"
   end
-  
+
   def simul
     @@result = []
     @@juja = []
@@ -58,7 +72,7 @@ class HomeController < ApplicationController
     out = 0
     @@result << @@inning.to_s + "이닝"
     while out < 3 do
-      Record.where(selected: true).order(batting_order: :asc).each do |r| #선택된 타자들 타순으로
+      Record.where(selected: true, user_id: current_user.id).order(batting_order: :asc) do |r| #선택된 타자들 타순으로
         result_of_the_batter = r.batter_result #랜덤으로 타석 결과 뽑기
         @@result << r.batting_order.to_s + "번타자 " + r.name + ": " + result_of_the_batter
         if result_of_the_batter == "strikeout"
@@ -111,6 +125,6 @@ class HomeController < ApplicationController
   end
   
   def choose
-    @all_players = Record.all
+    @all_players = Record.where(user_id: current_user.id)
   end
 end

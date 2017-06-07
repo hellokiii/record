@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   devise_for :users
+  root 'home#choose'
   get 'home/index'
   get 'home/dbupload'
   post 'home/upload'

@@ -1,6 +1,6 @@
 
 
-
+<%=current_user.id%>
 <ul class="dropdown-content checkboxes">
     <% @all_players.each do |a| %>
       <li><label><input type="checkbox" /><%=a.name%></label></li>
