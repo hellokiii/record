@@ -72,7 +72,7 @@ class HomeController < ApplicationController
     out = 0
     @@result << @@inning.to_s + "이닝"
     while out < 3 do
-      Record.where(selected: true, user_id: current_user.id).order(batting_order: :asc) do |r| #선택된 타자들 타순으로
+      Record.where(selected: true).order(batting_order: :asc) do |r| #선택된 타자들 타순으로
         result_of_the_batter = r.batter_result #랜덤으로 타석 결과 뽑기
         @@result << r.batting_order.to_s + "번타자 " + r.name + ": " + result_of_the_batter
         if result_of_the_batter == "strikeout"
